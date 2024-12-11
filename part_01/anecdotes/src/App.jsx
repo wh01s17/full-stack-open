@@ -27,12 +27,21 @@ const App = () => {
     setPoints(copy)
   }
 
+  const mostVoted = Math.max(...points)
+  const indexAnecdote = points.indexOf(mostVoted)
+
   return (
     <div>
+      <h2>Anecdote of the day</h2>
       <p>{anecdotes[selected]}</p>
       <p>has {points[selected]} votes</p>
       <button onClick={handleVote}>vote</button>
       <button onClick={handleClick}>next anecdote</button>
+
+      <h2>Anecdote with most votes</h2>
+      <p>{anecdotes[indexAnecdote]}</p>
+      <p>has {points[indexAnecdote]} votes</p>
+
     </div>
   )
 }
