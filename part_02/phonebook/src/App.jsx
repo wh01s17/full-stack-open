@@ -4,6 +4,7 @@ import Persons from "./components/Persons"
 import PersonForm from "./components/PersonForm"
 import Filter from "./components/Filter"
 import axios from "axios"
+import numberService from './services/Numbers'
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -13,10 +14,10 @@ const App = () => {
   const [search, setSearch] = useState('')
 
   useEffect(() => {
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        setPersons(response.data)
+    numberService
+      .getAll()
+      .then(initialNumbers => {
+        setPersons(initialNumbers)
       })
   }, [])
 
@@ -24,17 +25,33 @@ const App = () => {
     e.preventDefault()
 
     if (nameExist(newName)) {
-      return alert(`${newName} is already added to phonebook`)
-    }
+      if (window.confirm(`${newName} is already added to phonebook, replace the old number with new one?`)) {
+        const person = persons.find(p => p.name === newName)
+        const changedNumber = { ...person, number: newNumber }
 
-    const nameObj = {
-      name: newName,
-      number: newNumber
-    }
+        numberService
+          .update(changedNumber.id, changedNumber)
+          .then(returnedPerson => {
+            setPersons(persons.map(person => person.id !== returnedPerson.id ? person : returnedPerson))
+            alert('number updated')
+            setNewName('')
+            setNewNumber('')
+          })
+      }
+    } else {
+      const nameObj = {
+        name: newName,
+        number: newNumber
+      }
 
-    setPersons(persons.concat(nameObj))
-    setNewName('')
-    setNewNumber('')
+      numberService
+        .create(nameObj)
+        .then(returnedNote => {
+          setPersons(persons.concat(returnedNote))
+          setNewName('')
+          setNewNumber('')
+        })
+    }
   }
 
   const handleNameChange = (e) => {
@@ -51,6 +68,29 @@ const App = () => {
 
   const nameExist = (n) => {
     return persons.some(person => person.name === n)
+  }
+
+  const handleDelete = (id, name) => {
+    if (window.confirm(`Delete ${name}?`)) {
+      numberService
+        .deletePerson(id)
+        .then(() => {
+          setPersons(persons.filter(p => p.id !== id))
+        })
+    }
+  }
+
+  const updateNumber = (e, id, name) => {
+    if (window.confirm(`${name} is already added to phonebook, replace the old number with new one?`)) {
+      const person = persons.find(p => p.id === id)
+      const changedNumber = { ...person, number: e.target.value }
+
+      numberService
+        .update(id, changedNumber)
+        .then(returnedPerson => {
+          setPersons(persons.map(person => person.id !== id ? person : returnedPerson))
+        })
+    }
   }
 
   const personsToShow = search
@@ -71,7 +111,7 @@ const App = () => {
       />
 
       <h2>Numbers</h2>
-      <Persons persons={personsToShow} />
+      <Persons persons={personsToShow} handleDelete={handleDelete} />
     </div>
   )
 }
