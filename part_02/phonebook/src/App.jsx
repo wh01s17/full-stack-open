@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react"
-import './App.css'
 import Persons from "./components/Persons"
 import PersonForm from "./components/PersonForm"
 import Filter from "./components/Filter"
-import axios from "axios"
 import numberService from './services/Numbers'
 
 const App = () => {
@@ -76,19 +74,6 @@ const App = () => {
         .deletePerson(id)
         .then(() => {
           setPersons(persons.filter(p => p.id !== id))
-        })
-    }
-  }
-
-  const updateNumber = (e, id, name) => {
-    if (window.confirm(`${name} is already added to phonebook, replace the old number with new one?`)) {
-      const person = persons.find(p => p.id === id)
-      const changedNumber = { ...person, number: e.target.value }
-
-      numberService
-        .update(id, changedNumber)
-        .then(returnedPerson => {
-          setPersons(persons.map(person => person.id !== id ? person : returnedPerson))
         })
     }
   }
